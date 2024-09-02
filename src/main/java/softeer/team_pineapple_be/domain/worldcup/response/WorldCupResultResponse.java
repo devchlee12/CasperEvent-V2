@@ -18,6 +18,6 @@ public class WorldCupResultResponse {
   private Long percent;
 
   public static WorldCupResultResponse from(Integer id, Long count, Long totalCount) {
-    return new WorldCupResultResponse(id, count, 100 * count / totalCount);
+    return new WorldCupResultResponse(id, count, 100 * count / (totalCount == 0 ? 1 : totalCount));
   }
 }
