@@ -24,10 +24,6 @@ public class QuizDailyBatch {
   @CacheEvict(value = "quizContent", allEntries = true, cacheManager = "redisCacheManager")
   public void quizDailyBatch() {
     quizRedisService.deleteParticipateInfo();
-  }
-
-  @Scheduled(cron = "0 30 12 * * *")
-  public void quizCacheWarmUp() {
-    quizService.getQuizContent();
+    quizService.quizContentCacheWarmUp();
   }
 }

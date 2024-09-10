@@ -82,6 +82,13 @@ public class QuizService {
     return QuizContentResponse.of(quizContent);
   }
 
+  @Transactional(readOnly = true)
+  @Cacheable(value = "quizContent", cacheManager = "redisCacheManager")
+  public QuizContentResponse quizContentCacheWarmUp(){
+    QuizContent quizContent = quizContentRepository.findByQuizDate(LocalDate.now()).orElseThrow(() -> new RestApiException(QuizErrorCode.NO_QUIZ_CONTENT));
+    return QuizContentResponse.of(quizContent);
+  }
+
   /**
    * 날짜 별 이벤트 내용 전송해주는 메서드
    *

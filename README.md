@@ -1,4 +1,4 @@
-# Casper 신차출시 이벤트를 고도화 프로젝트
+# Casper 신차출시 이벤트 고도화 프로젝트
 
 원본 리포지토리 : https://github.com/softeerbootcamp4th/Team8-PineApple-BE
 > 현대 소프티어 부트캠프 Team 밟으실 수수숲...
