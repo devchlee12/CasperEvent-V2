@@ -55,6 +55,7 @@ public class RedisConfig {
     cacheConfigurationMap.put("drawProbability", defaultConfiguration().entryTtl(Duration.ofDays(1)));
     cacheConfigurationMap.put("quizContent", defaultConfiguration().entryTtl(Duration.ofDays(1)));
     cacheConfigurationMap.put("quizInfo", defaultConfiguration().entryTtl(Duration.ofDays(1)));
+    cacheConfigurationMap.put("rewardInfo", defaultConfiguration().entryTtl(Duration.ofDays(1)));
     return cacheConfigurationMap;
   }
 

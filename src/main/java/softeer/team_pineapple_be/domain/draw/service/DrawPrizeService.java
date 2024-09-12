@@ -1,5 +1,7 @@
 package softeer.team_pineapple_be.domain.draw.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +41,7 @@ public class DrawPrizeService {
    * 응모 경품 이미지를 반환하는 메서드
    */
   @Transactional(readOnly = true)
+  @Cacheable(value = "rewardInfo", cacheManager = "redisCacheManager")
   public List<DrawRewardInfoResponse> getDrawRewardImages() {
     List<DrawRewardInfo> all = drawRewardInfoRepository.findAll();
     return all.stream().map(info -> DrawRewardInfoResponse.of(info, drawProbabilityService)).toList();
@@ -71,6 +74,7 @@ public class DrawPrizeService {
    * @throws RestApiException 파일 형식이 ZIP이 아닌 경우 또는 권한이 없는 경우 발생
    */
   @Transactional
+  @CacheEvict(value = "rewardInfo", allEntries = true, cacheManager = "redisCacheManager")
   public void uploadDrawPrizeZipFile(MultipartFile file, String ranking) {
     s3UploadService.validateZipFile(file);
 
