@@ -129,7 +129,7 @@ class DrawPrizeServiceTest {
         when(drawRewardInfoRepository.findAll()).thenReturn(List.of(drawRewardInfo1, drawRewardInfo2));
 
         // When
-        List<DrawRewardInfoResponse> responses = drawPrizeService.getDrawRewardImages();
+        List<DrawRewardInfoResponse> responses = drawPrizeService.getDrawRewardImages().getDrawRewardInfoResponses();
 
         // Then
         assertEquals(2, responses.size());
