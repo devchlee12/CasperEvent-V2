@@ -15,7 +15,9 @@ import softeer.team_pineapple_be.domain.draw.domain.DrawRewardInfo;
 import softeer.team_pineapple_be.domain.draw.exception.DrawErrorCode;
 import softeer.team_pineapple_be.domain.draw.repository.DrawPrizeRepository;
 import softeer.team_pineapple_be.domain.draw.repository.DrawRewardInfoRepository;
+import softeer.team_pineapple_be.domain.draw.response.DrawRewardInfoListResponse;
 import softeer.team_pineapple_be.domain.draw.response.DrawRewardInfoResponse;
+import softeer.team_pineapple_be.domain.draw.response.DrawRewardInfoResponsesWrapper;
 import softeer.team_pineapple_be.domain.draw.response.SendPrizeResponse;
 import softeer.team_pineapple_be.global.auth.service.AuthMemberService;
 import softeer.team_pineapple_be.global.cloud.service.S3DeleteService;
@@ -42,9 +44,9 @@ public class DrawPrizeService {
    */
   @Transactional(readOnly = true)
   @Cacheable(value = "rewardInfo", cacheManager = "redisCacheManager")
-  public List<DrawRewardInfoResponse> getDrawRewardImages() {
+  public DrawRewardInfoResponsesWrapper getDrawRewardImages() {
     List<DrawRewardInfo> all = drawRewardInfoRepository.findAll();
-    return all.stream().map(info -> DrawRewardInfoResponse.of(info, drawProbabilityService)).toList();
+    return new DrawRewardInfoResponsesWrapper(all.stream().map(info -> DrawRewardInfoResponse.of(info, drawProbabilityService)).toList());
   }
 
   /**
