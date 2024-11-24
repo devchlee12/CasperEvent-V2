@@ -1,6 +1,8 @@
 package softeer.team_pineapple_be.domain.fcfs.service;
 
+import java.util.Collections;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -20,16 +22,19 @@ import softeer.team_pineapple_be.global.exception.RestApiException;
 @RequiredArgsConstructor
 public class FcfsService {
   private final static String FCFS_KEY = "fcfs_queue";
-  private final static Long FCFS_LIMIT = 500L;
+  private final static String FCFS_INFO_KEY = "fcfs_info";
+  private final static String FCFS_LIMIT = "500";
   private final RedisTemplate<String, String> redisTemplate;
   private final FcfsInfoRepository fcfsInfoRepository;
   private final QuizAsyncService quizAsyncService;
+  private final RedisScript<Long> firstComeFirstServeScript;
 
   /**
    * 선착순 큐 초기화
    */
-  public void clearFcfsQueue() {
+  public void clearFcfsInfo() {
     redisTemplate.delete(FCFS_KEY);
+    redisTemplate.delete(FCFS_INFO_KEY);
   }
 
   /**
@@ -39,10 +44,8 @@ public class FcfsService {
    */
   public FcfsInfo getFirstComeFirstServe() {
     String uuid = UUID.randomUUID().toString();
-    Long order = redisTemplate.opsForValue().increment(FCFS_KEY);
-    if (order > FCFS_LIMIT) {
-      order = 0L;
-    }
+    //선착순 안에 들었는지 확인하고 선착순에 들었으면 redis에 uuid 저장하고 순번 반환, 못들었으면 그냥 0 반환
+    Long order = redisTemplate.execute(firstComeFirstServeScript, Collections.singletonList(FCFS_KEY), FCFS_LIMIT ,FCFS_INFO_KEY, uuid);
     if (order > 0) {
       quizAsyncService.saveFcfsInfo(uuid, order);
     }
@@ -56,9 +59,13 @@ public class FcfsService {
    * @return 참가자의 등수
    */
   public Integer getParticipantOrder(String participantId) {
-    FcfsInfoEntity fcfsInfoEntity = fcfsInfoRepository.findByParticipantId(participantId)
-                                                      .orElseThrow(
-                                                          () -> new RestApiException(FcfsErrorCode.NOT_FOR_REWARD));
-    return fcfsInfoEntity.getSuccessOrder();
+    Object order = redisTemplate.opsForHash().get(FCFS_INFO_KEY, participantId);
+    if (order == null) {
+      FcfsInfoEntity fcfsInfoEntity = fcfsInfoRepository.findByParticipantId(participantId)
+              .orElseThrow(
+                      () -> new RestApiException(FcfsErrorCode.NOT_FOR_REWARD));
+      return fcfsInfoEntity.getSuccessOrder();
+    }
+    return Integer.valueOf(order.toString());
   }
 }

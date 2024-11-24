@@ -17,8 +17,8 @@ public class FcfsDailyBatch {
   /**
    * 매일 12시에 선착순 큐 초기화
    */
-  @Scheduled(cron = "0 0 12 * * *")
+  @Scheduled(cron = "0 30 12 * * *")
   public void initializesQueue() {
-    fcfsService.clearFcfsQueue();
+    fcfsService.clearFcfsInfo();
   }
 }

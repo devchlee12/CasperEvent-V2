@@ -1,11 +1,7 @@
-local is_set = redis.call('SADD', KEYS[1] ,ARGV[1])
-if is_set == 0
+local order = redis.call('incr', KEYS[1])
+if order <= tonumber(ARGV[1])
 then
-    return -1;
-end
-local order = redis.call('SCARD', KEYS[1])
-if order <= tonumber(ARGV[2])
-then
+    redis.call('HSET', ARGV[2], ARGV[3], order)
     return order
 end
 return 0
