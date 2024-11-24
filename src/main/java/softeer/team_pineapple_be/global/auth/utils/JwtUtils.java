@@ -81,6 +81,7 @@ public class JwtUtils {
   public void init() {
     // JWT 초기화 로직
     Jwts.parser().build();
+    Jwts.builder().compact();
   }
 
   public Boolean isExpired(String token) {
