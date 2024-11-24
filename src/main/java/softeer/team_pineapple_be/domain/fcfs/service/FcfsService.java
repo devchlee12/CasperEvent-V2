@@ -10,6 +10,7 @@ import softeer.team_pineapple_be.domain.fcfs.domain.FcfsInfoEntity;
 import softeer.team_pineapple_be.domain.fcfs.dto.FcfsInfo;
 import softeer.team_pineapple_be.domain.fcfs.exception.FcfsErrorCode;
 import softeer.team_pineapple_be.domain.fcfs.repository.FcfsInfoRepository;
+import softeer.team_pineapple_be.domain.quiz.service.QuizAsyncService;
 import softeer.team_pineapple_be.global.exception.RestApiException;
 
 /**
@@ -22,6 +23,7 @@ public class FcfsService {
   private final static Long FCFS_LIMIT = 500L;
   private final RedisTemplate<String, String> redisTemplate;
   private final FcfsInfoRepository fcfsInfoRepository;
+  private final QuizAsyncService quizAsyncService;
 
   /**
    * 선착순 큐 초기화
@@ -42,7 +44,7 @@ public class FcfsService {
       order = 0L;
     }
     if (order > 0) {
-      fcfsInfoRepository.save(new FcfsInfoEntity(uuid, order.intValue()));
+      quizAsyncService.saveFcfsInfo(uuid, order);
     }
     return new FcfsInfo(uuid, order);
   }
