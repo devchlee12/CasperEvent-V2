@@ -1,4 +1,4 @@
-package softeer.team_pineapple_be.domain.quiz.response;
+package softeer.team_pineapple_be.domain.quiz.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,13 +16,13 @@ public class QuizInfoResponse {
 
     /**
      * QuizInfo의 엔티티를 응답 형식으로 변환하는 메서드
-     * @param quizInfo 변환될 quizInfo엔티티
+     * @param quizImage 퀴즈 이미지
      * @param isCorrect 정답 여부
      * @return 반환된 응답 형식
      */
-    public static QuizInfoResponse of(QuizInfo quizInfo, Boolean isCorrect){
+    public static QuizInfoResponse of(String quizImage, Boolean isCorrect){
         return new QuizInfoResponse(
                 isCorrect,
-                quizInfo.getQuizImage());
+                quizImage);
     }
 }

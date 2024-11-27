@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import softeer.team_pineapple_be.domain.quiz.request.QuizModifyRequest;
+import softeer.team_pineapple_be.domain.quiz.dto.request.QuizModifyRequest;
 
 /**
  * QuizContent의 엔티티 타입

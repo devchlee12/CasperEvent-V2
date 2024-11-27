@@ -1,9 +1,10 @@
-package softeer.team_pineapple_be.domain.quiz.request;
+package softeer.team_pineapple_be.domain.quiz.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.validator.constraints.Range;
 
 /**

@@ -5,6 +5,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
+import softeer.team_pineapple_be.domain.quiz.dto.response.QuizContentResponse;
+import softeer.team_pineapple_be.domain.quiz.service.QuizCacheLayerService;
 import softeer.team_pineapple_be.domain.quiz.service.QuizRedisService;
 import softeer.team_pineapple_be.domain.quiz.service.QuizService;
 
@@ -16,14 +18,16 @@ import softeer.team_pineapple_be.domain.quiz.service.QuizService;
 public class QuizDailyBatch {
   private final QuizRedisService quizRedisService;
   private final QuizService quizService;
+  private final QuizCacheLayerService quizCacheLayerService;
 
   /**
-   * 매일 12시에 퀴즈 참여 정보 초기화
+   * 매일 12시에 퀴즈 관련 배치처리
    */
   @Scheduled(cron = "0 0 12 * * *")
-  @CacheEvict(value = "quizContent", allEntries = true, cacheManager = "redisCacheManager")
+  @CacheEvict(value = {"quizContent", "quizInfo"}, allEntries = true, cacheManager = "redisCacheManager")
   public void quizDailyBatch() {
     quizRedisService.deleteParticipateInfo();
-    quizService.quizContentCacheWarmUp();
+    QuizContentResponse quizContent = quizService.quizContentCacheWarmUp();
+    quizCacheLayerService.getQuizInfoCache(quizContent.getQuizId());
   }
 }

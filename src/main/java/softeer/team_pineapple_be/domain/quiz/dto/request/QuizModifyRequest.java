@@ -1,4 +1,4 @@
-package softeer.team_pineapple_be.domain.quiz.request;
+package softeer.team_pineapple_be.domain.quiz.dto.request;
 
 import java.util.Map;
 

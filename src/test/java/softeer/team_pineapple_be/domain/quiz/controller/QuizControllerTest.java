@@ -17,9 +17,9 @@ import java.util.Map;
 
 import softeer.team_pineapple_be.domain.member.domain.Member;
 import softeer.team_pineapple_be.domain.member.response.MemberInfoResponse;
-import softeer.team_pineapple_be.domain.quiz.request.QuizInfoRequest;
-import softeer.team_pineapple_be.domain.quiz.response.QuizContentResponse;
-import softeer.team_pineapple_be.domain.quiz.response.QuizInfoResponse;
+import softeer.team_pineapple_be.domain.quiz.dto.request.QuizInfoRequest;
+import softeer.team_pineapple_be.domain.quiz.dto.response.QuizContentResponse;
+import softeer.team_pineapple_be.domain.quiz.dto.response.QuizInfoResponse;
 import softeer.team_pineapple_be.domain.quiz.service.QuizService;
 import softeer.team_pineapple_be.global.auth.service.AuthMemberService;
 

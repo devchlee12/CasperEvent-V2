@@ -11,7 +11,7 @@ import softeer.team_pineapple_be.domain.member.domain.Member;
 import softeer.team_pineapple_be.domain.quiz.domain.QuizContent;
 import softeer.team_pineapple_be.domain.quiz.domain.QuizHistory;
 import softeer.team_pineapple_be.domain.quiz.repository.QuizHistoryRepository;
-import softeer.team_pineapple_be.domain.quiz.response.QuizHistoryResponse;
+import softeer.team_pineapple_be.domain.quiz.dto.response.QuizHistoryResponse;
 
 import java.time.LocalDate;
 import java.util.*;

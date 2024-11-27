@@ -26,18 +26,19 @@ import softeer.team_pineapple_be.domain.quiz.domain.QuizContent;
 import softeer.team_pineapple_be.domain.quiz.domain.QuizHistory;
 import softeer.team_pineapple_be.domain.quiz.domain.QuizInfo;
 import softeer.team_pineapple_be.domain.quiz.domain.QuizReward;
+import softeer.team_pineapple_be.domain.quiz.dto.response.QuizInfoCacheResponse;
 import softeer.team_pineapple_be.domain.quiz.exception.QuizErrorCode;
 import softeer.team_pineapple_be.domain.quiz.repository.QuizContentRepository;
 import softeer.team_pineapple_be.domain.quiz.repository.QuizHistoryRepository;
 import softeer.team_pineapple_be.domain.quiz.repository.QuizInfoRepository;
 import softeer.team_pineapple_be.domain.quiz.repository.QuizRewardRepository;
-import softeer.team_pineapple_be.domain.quiz.request.QuizInfoModifyRequest;
-import softeer.team_pineapple_be.domain.quiz.request.QuizInfoRequest;
-import softeer.team_pineapple_be.domain.quiz.request.QuizModifyRequest;
-import softeer.team_pineapple_be.domain.quiz.response.QuizContentResponse;
-import softeer.team_pineapple_be.domain.quiz.response.QuizInfoResponse;
-import softeer.team_pineapple_be.domain.quiz.response.QuizRewardCheckResponse;
-import softeer.team_pineapple_be.domain.quiz.response.QuizSuccessInfoResponse;
+import softeer.team_pineapple_be.domain.quiz.dto.request.QuizInfoModifyRequest;
+import softeer.team_pineapple_be.domain.quiz.dto.request.QuizInfoRequest;
+import softeer.team_pineapple_be.domain.quiz.dto.request.QuizModifyRequest;
+import softeer.team_pineapple_be.domain.quiz.dto.response.QuizContentResponse;
+import softeer.team_pineapple_be.domain.quiz.dto.response.QuizInfoResponse;
+import softeer.team_pineapple_be.domain.quiz.dto.response.QuizRewardCheckResponse;
+import softeer.team_pineapple_be.domain.quiz.dto.response.QuizSuccessInfoResponse;
 import softeer.team_pineapple_be.global.auth.service.AuthMemberService;
 import softeer.team_pineapple_be.global.cloud.service.S3DeleteService;
 import softeer.team_pineapple_be.global.cloud.service.S3UploadService;
@@ -67,6 +68,7 @@ public class QuizService {
   private final S3UploadService s3UploadService;
   private final S3DeleteService s3DeleteService;
   private final QuizDao quizDao;
+  private final QuizCacheLayerService quizCacheLayerService;
 
   /**
    * 현재 날짜에 대한 이벤트 내용을 전송해주는 메서드
@@ -82,6 +84,10 @@ public class QuizService {
     return QuizContentResponse.of(quizContent);
   }
 
+  /**
+   * 퀴즈 컨텐츠 캐시 WarmUp
+   * @return 퀴즈 컨텐츠 응답
+   */
   @Transactional(readOnly = true)
   @Cacheable(value = "quizContent", cacheManager = "redisCacheManager")
   public QuizContentResponse quizContentCacheWarmUp(){
@@ -164,6 +170,7 @@ public class QuizService {
    * @param quizInfoModifyRequest
    */
   @Transactional
+  @CacheEvict(value = "quizInfo", cacheManager = "redisCacheManager")
   public void modifyOrSaveQuizInfo(LocalDate day, QuizInfoModifyRequest quizInfoModifyRequest) {
     String imageUrl;
     String fileName = QUIZ_INFO_FOLDER + day.toString() + "/";
@@ -223,16 +230,15 @@ public class QuizService {
    */
   @Transactional
   public QuizInfoResponse quizIsCorrect(QuizInfoRequest quizInfoRequest) {
-    QuizInfo quizInfo = quizInfoRepository.findById(quizInfoRequest.getQuizId())
-                                          .orElseThrow(() -> new RestApiException(QuizErrorCode.NO_QUIZ_INFO));
-    if (!quizInfoRequest.getAnswerNum().equals(quizInfo.getAnswerNum())) {
-      return QuizInfoResponse.of(quizInfo, false);
+    QuizInfoCacheResponse quizInfo = quizCacheLayerService.getQuizInfoCache(quizInfoRequest.getQuizId());
+    if (!quizInfoRequest.getAnswerNum().equals(quizInfo.answerNum())) {
+      return QuizInfoResponse.of(quizInfo.quizImage(), false);
     }
     FcfsInfo fcfsInfo = fcfsService.getFirstComeFirstServe();
     if (fcfsInfo.order() < 1) {
-      return new QuizSuccessInfoResponse(true, quizInfo.getQuizImage(), "NULL", FCFS_FAILED_ORDER);
+      return new QuizSuccessInfoResponse(true, quizInfo.quizImage(), "NULL", FCFS_FAILED_ORDER);
     }
-    return new QuizSuccessInfoResponse(true, quizInfo.getQuizImage(), fcfsInfo.uuid(), fcfsInfo.order().intValue());
+    return new QuizSuccessInfoResponse(true, quizInfo.quizImage(), fcfsInfo.uuid(), fcfsInfo.order().intValue());
   }
 
   /**

@@ -1,4 +1,4 @@
-package softeer.team_pineapple_be.domain.quiz.response;
+package softeer.team_pineapple_be.domain.quiz.dto.response;
 
 import lombok.Getter;
 
