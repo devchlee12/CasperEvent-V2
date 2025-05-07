@@ -1,7 +1,6 @@
 package softeer.team_pineapple_be.domain.draw.service;
 
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,11 +10,11 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import softeer.team_pineapple_be.domain.draw.domain.DrawProbability;
-import softeer.team_pineapple_be.domain.draw.exception.DrawErrorCode;
 import softeer.team_pineapple_be.domain.draw.repository.DrawProbabilityRepository;
 import softeer.team_pineapple_be.domain.draw.request.DrawProbabilityRequest;
 import softeer.team_pineapple_be.domain.draw.response.DrawProbabilityResponse;
-import softeer.team_pineapple_be.global.exception.RestApiException;
+import softeer.team_pineapple_be.domain.quiz.enums.CacheVersionKey;
+import softeer.team_pineapple_be.global.cache.service.CacheVersionService;
 
 /**
  * 경품 확률 서비스
@@ -25,6 +24,8 @@ import softeer.team_pineapple_be.global.exception.RestApiException;
 public class DrawProbabilityService {
 
   private final DrawProbabilityRepository drawProbabilityRepository;
+  private final DrawCacheLayerService drawCacheLayerService;
+  private final CacheVersionService cacheVersionService;
 
   /**
    * 경품 확률을 조회하는 메서드
@@ -40,12 +41,13 @@ public class DrawProbabilityService {
     return new DrawProbabilityResponse(probabilitiesMap);
   }
 
-  @Cacheable(value = "drawProbability", key = "#ranking", cacheManager = "redisCacheManager")
-  @Transactional(readOnly = true)
+  /**
+   * 당첨 확률 조회
+   */
   public Integer getDrawProbabilityByRanking(Byte ranking) {
-    return drawProbabilityRepository.findById(ranking)
-                                    .orElseThrow(() -> new RestApiException(DrawErrorCode.NO_PRIZE_PROBABILITY))
-                                    .getProbability();
+    Long cacheVersion = cacheVersionService.getCacheVersion(
+        CacheVersionKey.DRAW_PROBABILITY_INFO_VERSION.name());
+    return drawCacheLayerService.getDrawProbabilityCache(ranking, cacheVersion);
   }
 
   /**
@@ -54,7 +56,6 @@ public class DrawProbabilityService {
    * @param request 수정하고자 하는 경품 확률
    */
   @Transactional
-  @CacheEvict(value = "drawProbability", allEntries = true)
   public void setDrawProbability(DrawProbabilityRequest request) {
     Map<Byte, Integer> probabilities = request.getProbabilities();
     List<DrawProbability> drawProbabilities = probabilities.entrySet()
@@ -63,5 +64,6 @@ public class DrawProbabilityService {
                                                                entry.getValue()))
                                                            .collect(Collectors.toList());
     drawProbabilityRepository.saveAll(drawProbabilities);
+    drawCacheLayerService.increaseDrawProbabilityCacheVersion();
   }
 }

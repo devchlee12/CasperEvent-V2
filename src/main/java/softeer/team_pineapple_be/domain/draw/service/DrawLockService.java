@@ -45,8 +45,7 @@ public class DrawLockService {
     DrawRewardInfo rewardInfo =
         drawRewardInfoRepository.findById(prizeRank).orElseThrow(() -> new RestApiException(DrawErrorCode.NO_PRIZE));
 
-    if (rewardInfo.getRanking().equals(DRAW_LOSE) || rewardInfo.getRanking().equals(DRAW_FIRST_PRIZE) ||
-        rewardInfo.getStock() == 0) {
+    if (rewardInfo.getRanking().equals(DRAW_LOSE) || rewardInfo.getStock() == 0) {
       return disposeDrawLose(memberPhoneNumber, member, dailyMessageInfo);
     }
     Long prizeId;

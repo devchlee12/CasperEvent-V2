@@ -18,9 +18,8 @@ public class DrawRewardInfoResponse {
   private Integer rewardCount;
   private String imageUrl;
 
-  public static DrawRewardInfoResponse of(DrawRewardInfo drawRewardInfo,
-      DrawProbabilityService drawProbabilityService) {
-    return new DrawRewardInfoResponse(drawRewardInfo.getRanking(), drawRewardInfo.getName(),
-        drawProbabilityService.getDrawProbabilityByRanking(drawRewardInfo.getRanking()), drawRewardInfo.getImage());
+  public static DrawRewardInfoResponse of(DrawRewardInfo drawRewardInfo, Integer rewardCount) {
+    return new DrawRewardInfoResponse(drawRewardInfo.getRanking(), drawRewardInfo.getName()
+        ,rewardCount,drawRewardInfo.getImage());
   }
 }

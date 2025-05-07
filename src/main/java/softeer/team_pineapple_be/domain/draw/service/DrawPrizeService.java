@@ -1,7 +1,6 @@
 package softeer.team_pineapple_be.domain.draw.service;
 
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,11 +14,11 @@ import softeer.team_pineapple_be.domain.draw.domain.DrawRewardInfo;
 import softeer.team_pineapple_be.domain.draw.exception.DrawErrorCode;
 import softeer.team_pineapple_be.domain.draw.repository.DrawPrizeRepository;
 import softeer.team_pineapple_be.domain.draw.repository.DrawRewardInfoRepository;
-import softeer.team_pineapple_be.domain.draw.response.DrawRewardInfoListResponse;
-import softeer.team_pineapple_be.domain.draw.response.DrawRewardInfoResponse;
 import softeer.team_pineapple_be.domain.draw.response.DrawRewardInfoResponsesWrapper;
 import softeer.team_pineapple_be.domain.draw.response.SendPrizeResponse;
+import softeer.team_pineapple_be.domain.quiz.enums.CacheVersionKey;
 import softeer.team_pineapple_be.global.auth.service.AuthMemberService;
+import softeer.team_pineapple_be.global.cache.service.CacheVersionService;
 import softeer.team_pineapple_be.global.cloud.service.S3DeleteService;
 import softeer.team_pineapple_be.global.cloud.service.S3UploadService;
 import softeer.team_pineapple_be.global.exception.RestApiException;
@@ -37,16 +36,16 @@ public class DrawPrizeService {
   private final S3UploadService s3UploadService;
   private final S3DeleteService s3DeleteService;
   private final DrawRewardInfoRepository drawRewardInfoRepository;
-  private final DrawProbabilityService drawProbabilityService;
+  private final DrawCacheLayerService drawCacheLayerService;
+  private final CacheVersionService cacheVersionService;
 
   /**
-   * 응모 경품 이미지를 반환하는 메서드
+   * 응모 경품 정보를 반환하는 메서드
    */
-  @Transactional(readOnly = true)
-  @Cacheable(value = "rewardInfo", cacheManager = "redisCacheManager")
-  public DrawRewardInfoResponsesWrapper getDrawRewardImages() {
-    List<DrawRewardInfo> all = drawRewardInfoRepository.findAll();
-    return new DrawRewardInfoResponsesWrapper(all.stream().map(info -> DrawRewardInfoResponse.of(info, drawProbabilityService)).toList());
+  public DrawRewardInfoResponsesWrapper getDrawRewardInfos() {
+    Long cacheVersion = cacheVersionService.getCacheVersion(
+        CacheVersionKey.DRAW_REWARD_INFO_VERSION.name());
+    return drawCacheLayerService.getDrawRewardInfoCache(cacheVersion);
   }
 
   /**
@@ -76,7 +75,6 @@ public class DrawPrizeService {
    * @throws RestApiException 파일 형식이 ZIP이 아닌 경우 또는 권한이 없는 경우 발생
    */
   @Transactional
-  @CacheEvict(value = "rewardInfo", allEntries = true, cacheManager = "redisCacheManager")
   public void uploadDrawPrizeZipFile(MultipartFile file, String ranking) {
     s3UploadService.validateZipFile(file);
 
@@ -95,5 +93,6 @@ public class DrawPrizeService {
     });
 
     drawPrizeRepository.saveAll(drawPrizes);
+    drawCacheLayerService.increaseDrawRewardInfoCacheVersion();
   }
 }

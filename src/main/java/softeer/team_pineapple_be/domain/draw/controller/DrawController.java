@@ -54,7 +54,7 @@ public class DrawController {
   @Operation(summary = "메인 페이지에서 사용할 경품 정보 받기")
   @GetMapping("/prize-infos")
   public ResponseEntity<List<DrawRewardInfoResponse>> getDrawPrizeImages() {
-    List<DrawRewardInfoResponse> drawRewardImages = drawPrizeService.getDrawRewardImages().getDrawRewardInfoResponses();
+    List<DrawRewardInfoResponse> drawRewardImages = drawPrizeService.getDrawRewardInfos().getDrawRewardInfoResponses();
     return ResponseEntity.ok(drawRewardImages);
   }
 
