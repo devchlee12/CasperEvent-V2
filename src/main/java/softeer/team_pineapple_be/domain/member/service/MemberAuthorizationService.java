@@ -1,5 +1,6 @@
 package softeer.team_pineapple_be.domain.member.service;
 
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,5 +74,20 @@ public class MemberAuthorizationService {
       return;
     }
     memberAuthorizationRepository.save(new MemberAuthorization(phoneNumber, authCode));
+  }
+
+  /**
+   * 테스트 로그인을 위해 핸드폰 번호에 대한 유저의 accessToken과 정보를 반환
+   */
+  @Transactional(readOnly = true)
+  public MemberLoginInfoResponse getTestLoginInfo(String userPhoneNumber) {
+    Member member = memberRepository.findByPhoneNumber(userPhoneNumber)
+        .orElseThrow(() -> new RestApiException(MemberAuthorizationErrorCode.PHONE_NOT_EXISTS));
+
+    String accessToken = jwtUtils.createJwt("access_token", member.getPhoneNumber(),
+        member.getRole(), 2 * 24 * 60 * 60 * 1000L);
+
+    return MemberLoginInfoResponse
+        .of(member,accessToken,quizRedisService.wasParticipatedInQuiz(member.getPhoneNumber()));
   }
 }

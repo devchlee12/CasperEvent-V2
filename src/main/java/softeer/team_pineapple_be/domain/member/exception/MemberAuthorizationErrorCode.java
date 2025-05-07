@@ -11,7 +11,9 @@ public enum MemberAuthorizationErrorCode implements ErrorCode {
 
     CODE_NOT_SENT(HttpStatus.BAD_REQUEST,"인증번호가 제대로 전송되지 않았습니다."),
     CODE_EXPIRED(HttpStatus.BAD_REQUEST,"인증번호 유효시간이 초과되었습니다."),
-    CODE_INCORRECT(HttpStatus.BAD_REQUEST,"인증번호가 틀렸습니다.");
+    CODE_INCORRECT(HttpStatus.BAD_REQUEST,"인증번호가 틀렸습니다."),
+
+    PHONE_NOT_EXISTS(HttpStatus.BAD_REQUEST, "존재하지 않는 번호입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

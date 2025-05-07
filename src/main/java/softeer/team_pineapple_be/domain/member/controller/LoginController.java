@@ -1,6 +1,7 @@
 package softeer.team_pineapple_be.domain.member.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +43,13 @@ public class LoginController {
         memberAuthorizationService.loginWithAuthCode(loginAuthCodeRequest.getPhoneNumber(),
             loginAuthCodeRequest.getCode());
     return ResponseEntity.ok(memberLoginInfoResponse);
+  }
+  
+  @Operation(summary = "테스트 로그인")
+  @PostMapping("/login/test/{phoneNumber}")
+  public ResponseEntity<MemberLoginInfoResponse> testLogin(@PathVariable(name = "phoneNumber") String phoneNumber) {
+    MemberLoginInfoResponse testLoginInfo = memberAuthorizationService.getTestLoginInfo(phoneNumber);
+    return ResponseEntity.ok(testLoginInfo);
   }
 
   @Auth
