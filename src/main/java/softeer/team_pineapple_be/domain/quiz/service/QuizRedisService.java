@@ -50,7 +50,14 @@ public class QuizRedisService {
    * @return
    */
   public Boolean wasMemberWinRewardToday(String memberPhoneNumber) {
-    return redisTemplate.opsForSet().isMember(REWARDED_KEY, memberPhoneNumber);
+    Boolean rewarded;
+    try {
+      rewarded = redisTemplate.opsForSet().isMember(REWARDED_KEY, memberPhoneNumber);
+    } catch (IllegalArgumentException e) {
+      redisTemplate.opsForSet().add(REWARDED_KEY, "placeholder");
+      return false;
+    }
+    return rewarded;
   }
 
   /**
