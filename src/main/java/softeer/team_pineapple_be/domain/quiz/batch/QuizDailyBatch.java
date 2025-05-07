@@ -24,10 +24,9 @@ public class QuizDailyBatch {
    * 매일 12시에 퀴즈 관련 배치처리
    */
   @Scheduled(cron = "0 0 12 * * *")
-  @CacheEvict(value = {"quizContent", "quizInfo"}, allEntries = true, cacheManager = "redisCacheManager")
   public void quizDailyBatch() {
     quizRedisService.deleteParticipateInfo();
     QuizContentResponse quizContent = quizService.quizContentCacheWarmUp();
-    quizCacheLayerService.getQuizInfoCache(quizContent.getQuizId());
+    quizService.getQuizInfo(quizContent.getQuizId());
   }
 }
