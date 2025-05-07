@@ -1,8 +1,5 @@
 package softeer.team_pineapple_be.domain.quiz.service;
 
-import org.springdoc.core.parsers.ReturnTypeParser;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +24,7 @@ import softeer.team_pineapple_be.domain.quiz.domain.QuizHistory;
 import softeer.team_pineapple_be.domain.quiz.domain.QuizInfo;
 import softeer.team_pineapple_be.domain.quiz.domain.QuizReward;
 import softeer.team_pineapple_be.domain.quiz.dto.response.QuizInfoCacheResponse;
+import softeer.team_pineapple_be.domain.quiz.enums.CacheVersionKey;
 import softeer.team_pineapple_be.domain.quiz.exception.QuizErrorCode;
 import softeer.team_pineapple_be.domain.quiz.repository.QuizContentRepository;
 import softeer.team_pineapple_be.domain.quiz.repository.QuizHistoryRepository;
@@ -40,6 +38,7 @@ import softeer.team_pineapple_be.domain.quiz.dto.response.QuizInfoResponse;
 import softeer.team_pineapple_be.domain.quiz.dto.response.QuizRewardCheckResponse;
 import softeer.team_pineapple_be.domain.quiz.dto.response.QuizSuccessInfoResponse;
 import softeer.team_pineapple_be.global.auth.service.AuthMemberService;
+import softeer.team_pineapple_be.global.cache.service.CacheVersionService;
 import softeer.team_pineapple_be.global.cloud.service.S3DeleteService;
 import softeer.team_pineapple_be.global.cloud.service.S3UploadService;
 import softeer.team_pineapple_be.global.exception.RestApiException;
@@ -64,7 +63,7 @@ public class QuizService {
   private final QuizRewardRepository quizRewardRepository;
   private final MessageService messageService;
   private final QuizRedisService quizRedisService;
-  private final ReturnTypeParser genericReturnTypeParser;
+  private final CacheVersionService cacheVersionService;
   private final S3UploadService s3UploadService;
   private final S3DeleteService s3DeleteService;
   private final QuizDao quizDao;
@@ -75,24 +74,20 @@ public class QuizService {
    *
    * @return 현재 날짜의 이벤트 내용
    */
-  @Transactional(readOnly = true)
-  @Cacheable(value = "quizContent", cacheManager = "redisCacheManager")
   public QuizContentResponse getQuizContent() {
-    QuizContent quizContent = quizContentRepository.findByQuizDate(determineQuizDate())
-                                                   .orElseThrow(
-                                                       () -> new RestApiException(QuizErrorCode.NO_QUIZ_CONTENT));
-    return QuizContentResponse.of(quizContent);
+    Long cacheVersion = cacheVersionService.getCacheVersion(
+        CacheVersionKey.QUIZ_CONTENT_VERSION.name());
+    return quizCacheLayerService.getQuizContentCache(LocalDate.now(), cacheVersion);
   }
 
   /**
    * 퀴즈 컨텐츠 캐시 WarmUp
    * @return 퀴즈 컨텐츠 응답
    */
-  @Transactional(readOnly = true)
-  @Cacheable(value = "quizContent", cacheManager = "redisCacheManager")
   public QuizContentResponse quizContentCacheWarmUp(){
-    QuizContent quizContent = quizContentRepository.findByQuizDate(LocalDate.now()).orElseThrow(() -> new RestApiException(QuizErrorCode.NO_QUIZ_CONTENT));
-    return QuizContentResponse.of(quizContent);
+    Long cacheVersion = cacheVersionService.getCacheVersion(
+        CacheVersionKey.QUIZ_CONTENT_VERSION.name());
+    return quizCacheLayerService.getQuizContentCache(LocalDate.now(), cacheVersion);
   }
 
   /**
@@ -145,7 +140,6 @@ public class QuizService {
    * @param quizModifyRequest
    */
   @Transactional
-  @CacheEvict(value = "quizContent", allEntries = true, cacheManager = "redisCacheManager")
   public void modifyOrSaveQuizContent(LocalDate date, QuizModifyRequest quizModifyRequest) {
     Optional<QuizContent> quizContentOptional = quizContentRepository.findByQuizDate(date);
     if (quizContentOptional.isEmpty()) {
@@ -161,6 +155,16 @@ public class QuizService {
     }
     QuizContent quizContent = quizContentOptional.get();
     quizContent.update(quizModifyRequest);
+    quizCacheLayerService.upVersionOfQuizContent();
+  }
+
+  /**
+   * 퀴즈 정보를 가져오는 메서드
+   */
+  public QuizInfoCacheResponse getQuizInfo(Integer quizId) {
+    Long cacheVersion = cacheVersionService
+        .getCacheVersion(CacheVersionKey.QUIZ_INFO_VERSION.name());
+    return quizCacheLayerService.getQuizInfoCache(quizId, cacheVersion);
   }
 
   /**
@@ -170,7 +174,6 @@ public class QuizService {
    * @param quizInfoModifyRequest
    */
   @Transactional
-  @CacheEvict(value = "quizInfo", cacheManager = "redisCacheManager")
   public void modifyOrSaveQuizInfo(LocalDate day, QuizInfoModifyRequest quizInfoModifyRequest) {
     String imageUrl;
     String fileName = QUIZ_INFO_FOLDER + day.toString() + "/";
@@ -195,6 +198,7 @@ public class QuizService {
     s3DeleteService.deleteFolder(fileName);
     imageUrl = uploadImageToS3(quizInfoModifyRequest, fileName);
     quizInfo.update(quizInfoModifyRequest.getAnswerNum(), imageUrl);
+    quizCacheLayerService.upVersionOfQuizInfo();
   }
 
   /**
@@ -230,7 +234,7 @@ public class QuizService {
    */
   @Transactional
   public QuizInfoResponse quizIsCorrect(QuizInfoRequest quizInfoRequest) {
-    QuizInfoCacheResponse quizInfo = quizCacheLayerService.getQuizInfoCache(quizInfoRequest.getQuizId());
+    QuizInfoCacheResponse quizInfo = getQuizInfo(quizInfoRequest.getQuizId());
     if (!quizInfoRequest.getAnswerNum().equals(quizInfo.answerNum())) {
       return QuizInfoResponse.of(quizInfo.quizImage(), false);
     }
