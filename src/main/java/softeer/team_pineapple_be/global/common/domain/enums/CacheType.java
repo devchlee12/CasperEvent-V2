@@ -7,7 +7,10 @@ import lombok.Getter;
  */
 @Getter
 public enum CacheType {
-  QUIZ_CONTENT("quizContent", 24 * 60 * 60, 1);
+  QUIZ_CONTENT("quizContent", 24 * 60 * 60, 10),
+  REWARD_INFO("rewardInfo", 24 * 60 * 60, 1),
+  QUIZ_INFO("quizInfo", 24 * 60 * 60, 10),
+  DRAW_PROBABILITY("drawProbability", 24 * 60 * 60, 10);
 
   private String cacheName;
   private int expiredAfterWrite;
