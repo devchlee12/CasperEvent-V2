@@ -256,7 +256,7 @@ class DrawServiceTest {
 
 
     // when
-    DrawDailyMessageResponse.DrawDailyScenario scenario = drawService.getDrawDailyScenario();
+    DrawDailyMessageResponse.DrawDailyScenario scenario = drawService.getDrawDailyScenario(LocalDate.now());
 
     // then
     assertThat(scenario).isNotNull();
@@ -275,7 +275,7 @@ class DrawServiceTest {
 
 
     // when
-    assertThatThrownBy(() -> drawService.getDrawDailyScenario()).isInstanceOf(RestApiException.class)
+    assertThatThrownBy(() -> drawService.getDrawDailyScenario(LocalDate.now())).isInstanceOf(RestApiException.class)
                                                                 .satisfies(exception -> {
                                                                   RestApiException restApiException =
                                                                       (RestApiException) exception; // 캐스팅
@@ -296,7 +296,7 @@ class DrawServiceTest {
 
 
     // when
-    assertThatThrownBy(() -> drawService.getDrawDailyScenario()).isInstanceOf(RestApiException.class)
+    assertThatThrownBy(() -> drawService.getDrawDailyScenario(LocalDate.now())).isInstanceOf(RestApiException.class)
                                                                 .satisfies(exception -> {
                                                                   RestApiException restApiException =
                                                                       (RestApiException) exception; // 캐스팅

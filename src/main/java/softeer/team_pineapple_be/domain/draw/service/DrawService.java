@@ -1,6 +1,7 @@
 package softeer.team_pineapple_be.domain.draw.service;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,8 +106,9 @@ public class DrawService {
    * @return 해당 날짜의 이벤트 진행 일 수와 응모 시나리오
    */
   @Transactional
-  public DrawDailyMessageResponse.DrawDailyScenario getDrawDailyScenario() {
-    EventDayInfo eventDayInfo = eventDayInfoRepository.findByEventDate(LocalDate.now())
+  @Cacheable(value = "drawScenario", key = "#now.toString()")
+  public DrawDailyMessageResponse.DrawDailyScenario getDrawDailyScenario(LocalDate now) {
+    EventDayInfo eventDayInfo = eventDayInfoRepository.findByEventDate(now)
                                                       .orElseThrow(
                                                           () -> new RestApiException(DrawErrorCode.NOT_VALID_DATE));
     Integer day = eventDayInfo.getEventDay();

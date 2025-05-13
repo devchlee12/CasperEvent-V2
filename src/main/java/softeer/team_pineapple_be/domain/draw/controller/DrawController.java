@@ -1,5 +1,6 @@
 package softeer.team_pineapple_be.domain.draw.controller;
 
+import java.time.LocalDate;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,7 +49,7 @@ public class DrawController {
   @Operation(summary = "해당 날짜와 응모 시나리오 조회")
   @GetMapping("/scenario")
   public ResponseEntity<DrawDailyMessageResponse.DrawDailyScenario> getDrawDailyScenario() {
-    return ResponseEntity.ok(drawService.getDrawDailyScenario());
+    return ResponseEntity.ok(drawService.getDrawDailyScenario(LocalDate.now()));
   }
 
   @Operation(summary = "메인 페이지에서 사용할 경품 정보 받기")
