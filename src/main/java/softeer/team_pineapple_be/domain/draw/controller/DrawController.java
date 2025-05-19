@@ -41,7 +41,6 @@ public class DrawController {
   @Auth
   @PostMapping
   @Operation(summary = "경품 추첨에 참여하기")
-  @SemaphoreGuarded
   public ResponseEntity<DrawResponse> enterDraw() {
     return ResponseEntity.ok(drawService.enterDraw(authMemberService.getMemberPhoneNumber()));
   }

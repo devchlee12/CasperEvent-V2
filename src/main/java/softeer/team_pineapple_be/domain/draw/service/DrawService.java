@@ -67,9 +67,8 @@ public class DrawService {
    *
    * @return 경품에 대한 정보 응답 객체
    */
-  @DistributedLock(key = "#memberPhoneNumber")
   public DrawResponse enterDraw(String memberPhoneNumber) {
-    Member member = processEnteringDraw(memberPhoneNumber);
+    Member member = drawLockService.processEnteringDraw(memberPhoneNumber);
     Byte prizeRank = randomDrawPrizeService.drawPrize();
     DrawDailyMessageInfo dailyMessageInfo = drawDailyMessageInfoRepository.findByDrawDate(LocalDate.now())
                                                                           .orElseThrow(() -> new RestApiException(
@@ -170,17 +169,6 @@ public class DrawService {
     }
   }
 
-  /**
-   * 경품 추첨 자격 있는지 확인
-   *
-   * @param member
-   */
-  private void canEnterDraw(Member member) {
-    if ((!member.isCar()) || (member.getToolBoxCnt() == 0)) {
-      throw new RestApiException(DrawErrorCode.CANNOT_ENTER_DRAW);
-    }
-  }
-
   private void deleteFolders(String winImageFolder, String loseImageFolder) {
     s3DeleteService.deleteFolder(winImageFolder);
     s3DeleteService.deleteFolder(loseImageFolder);
@@ -242,14 +230,6 @@ public class DrawService {
     } else {
       throw new RestApiException(DrawErrorCode.NO_DAILY_INFO);
     }
-  }
-
-  private @NotNull Member processEnteringDraw(String memberPhoneNumber) {
-    Member member = memberRepository.findByPhoneNumber(memberPhoneNumber)
-                                    .orElseThrow(() -> new RestApiException(MemberErrorCode.NO_MEMBER));
-    canEnterDraw(member);
-    member.decrementToolBoxCnt();
-    return member;
   }
 
   private void updateDailyMessageInfo(DrawDailyMessageInfo dailyMessageInfo, DrawDailyMessageModifyRequest request,
